@@ -4,18 +4,23 @@ from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 import joblib
+import os
 
 class SpamDetector:
     def __init__(self):
-        self.vectorizer = TfidfVectorizer(max_features=3000, stop_words='english')
-        self.model = None
+        self.vectorizer = TfidfVectorizer(max_features=2000, stop_words='english')
+        self.model = MultinomialNB()
         self.ps = PorterStemmer()
         self.is_trained = False
+        
+        # Download NLTK data if not present
+        try:
+            nltk.data.find('corpora/stopwords')
+        except LookupError:
+            nltk.download('stopwords')
         
     def clean_text(self, text):
         """Clean and preprocess text"""
@@ -26,15 +31,11 @@ class SpamDetector:
         # Tokenize
         words = text.split()
         # Remove stopwords and apply stemming
-        try:
-            stop_words = set(stopwords.words('english'))
-            words = [self.ps.stem(word) for word in words if word not in stop_words and len(word) > 2]
-        except:
-            # If stopwords not available, just do stemming
-            words = [self.ps.stem(word) for word in words if len(word) > 2]
+        stop_words = set(stopwords.words('english'))
+        words = [self.ps.stem(word) for word in words if word not in stop_words and len(word) > 2]
         return ' '.join(words)
     
-    def train(self, texts, labels, model_type='naive_bayes'):
+    def train(self, texts, labels):
         """Train the model with given texts and labels"""
         print("Cleaning training texts...")
         cleaned_texts = [self.clean_text(text) for text in texts]
@@ -47,18 +48,7 @@ class SpamDetector:
             X, labels, test_size=0.2, random_state=42, stratify=labels
         )
         
-        print(f"Training {model_type} model...")
-        # Choose model based on model_type
-        if model_type == 'naive_bayes':
-            self.model = MultinomialNB()
-        elif model_type == 'logistic_regression':
-            self.model = LogisticRegression(random_state=42)
-        elif model_type == 'random_forest':
-            self.model = RandomForestClassifier(n_estimators=100, random_state=42)
-        else:
-            raise ValueError(f"Unknown model type: {model_type}")
-        
-        # Train the model
+        print("Training model...")
         self.model.fit(X_train, y_train)
         self.is_trained = True
         
@@ -67,9 +57,6 @@ class SpamDetector:
         accuracy = accuracy_score(y_test, y_pred)
         
         print(f"Model trained with accuracy: {accuracy:.4f}")
-        print("\nClassification Report:")
-        print(classification_report(y_test, y_pred))
-        
         return accuracy
     
     def predict(self, text):
@@ -99,14 +86,11 @@ class SpamDetector:
     
     def load_model(self, filename):
         """Load a trained model from file"""
+        if not os.path.exists(filename):
+            raise FileNotFoundError(f"Model file {filename} not found")
+            
         model_data = joblib.load(filename)
         self.vectorizer = model_data['vectorizer']
         self.model = model_data['model']
         self.is_trained = model_data['is_trained']
         print(f"Model loaded from {filename}")
-
-# Test the class
-if __name__ == "__main__":
-    print("Testing SpamDetector class...")
-    detector = SpamDetector()
-    print("✓ SpamDetector class created successfully!")
