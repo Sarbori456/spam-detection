@@ -10,7 +10,6 @@ try:
     print("✓ Successfully imported SpamDetector")
 except ImportError as e:
     print(f"❌ Import error: {e}")
-    print("Please make sure model.py is in the same directory")
     exit(1)
 
 app = Flask(__name__)
@@ -31,8 +30,17 @@ if os.path.exists(MODEL_FILE):
         print(f"❌ Error loading model: {e}")
         print("Please run train_model.py first to create the model")
 else:
-    print(f"❌ Model file '{MODEL_FILE}' not found")
-    print("Please run train_model.py first to train and save the model")
+    print(f"⚠️  Model file '{MODEL_FILE}' not found - training model...")
+    try:
+        # Train the model if it doesn't exist
+        from train_model import create_training_data
+        X, y = create_training_data()
+        detector.train(X, y)
+        detector.save_model(MODEL_FILE)
+        model_loaded = True
+        print("✓ Model trained and saved successfully")
+    except Exception as e:
+        print(f"❌ Error training model: {e}")
 
 @app.route('/')
 def home():
@@ -44,7 +52,7 @@ def predict():
         return render_template('result.html', 
                              prediction="Error", 
                              confidence=0,
-                             message="Model not loaded. Please run train_model.py first.")
+                             message="Model not loaded. Please try again later.")
     
     try:
         message = request.form['message']
@@ -109,7 +117,8 @@ def health():
     })
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
     print(f"\n🚀 Starting Flask app...")
     print(f"📊 Model loaded: {model_loaded}")
-    print(f"🌐 Server will be available at: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print(f"🌐 Server will be available at: http://localhost:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)
