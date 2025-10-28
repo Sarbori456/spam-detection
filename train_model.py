@@ -1,13 +1,4 @@
 from model import SpamDetector
-import nltk
-
-# Download NLTK data if needed
-try:
-    nltk.data.find('corpora/stopwords')
-    print("✓ NLTK stopwords available")
-except LookupError:
-    print("Downloading NLTK stopwords...")
-    nltk.download('stopwords')
 
 def create_training_data():
     """Create sample spam/ham training data"""
@@ -73,8 +64,7 @@ def main():
     detector = SpamDetector()
     
     print("Training model...")
-    # Train with naive bayes (you can change to 'logistic_regression' or 'random_forest')
-    accuracy = detector.train(X, y, model_type='naive_bayes')
+    accuracy = detector.train(X, y)
     
     print("Saving model...")
     detector.save_model('spam_model.pkl')
@@ -88,9 +78,7 @@ def main():
         "Hey, let's meet for coffee tomorrow",
         "URGENT: Your account will be suspended",
         "Can you send me the meeting notes?",
-        "FREE MONEY!!! Click here now!!!",
-        "What time is our meeting tomorrow?",
-        "You have won a lottery! Claim your prize!"
+        "FREE MONEY!!! Click here now!!!"
     ]
     
     print("\n" + "="*50)
@@ -98,8 +86,7 @@ def main():
         try:
             prediction, prob = detector.predict(msg)
             result = "SPAM" if prediction == 1 else "HAM"
-            spam_prob = prob[1]
-            confidence = spam_prob if prediction == 1 else prob[0]
+            confidence = prob[1] if prediction == 1 else prob[0]
             print(f"📝 '{msg}'")
             print(f"   → {result} (confidence: {confidence:.2%})")
             print()
