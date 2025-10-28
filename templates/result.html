@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result - Spam Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .spam {
+            color: #dc3545;
+        }
+        .ham {
+            color: #28a745;
+        }
+        .confidence {
+            font-size: 18px;
+            color: #666;
+            margin: 10px 0;
+        }
+        .message-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .btn {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Analysis Result</h1>
+        
+        <div class="result {% if prediction == 'SPAM' %}spam{% else %}ham{% endif %}">
+            {% if prediction == 'SPAM' %}
+                🚫 SPAM DETECTED
+            {% else %}
+                ✅ LEGITIMATE MESSAGE
+            {% endif %}
+        </div>
+        
+        <div class="confidence">
+            Confidence: <strong>{{ confidence }}%</strong>
+        </div>
+        
+        <div class="message-box">
+            <strong>Original Message:</strong><br>
+            "{{ message }}"
+        </div>
+        
+        <a href="/" class="btn">Check Another Message</a>
+        
+        {% if prediction == 'SPAM' %}
+        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+            <strong>⚠️ Spam Alert Tips:</strong><br>
+            • Don't click on suspicious links<br>
+            • Never share personal information<br>
+            • Delete the message<br>
+            • Report as spam if possible
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
